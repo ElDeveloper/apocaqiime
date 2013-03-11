@@ -13,7 +13,7 @@ __status__ = "Development"
 
 from qiime.parse import parse_mapping_file
 from qiime.format import format_mapping_file
-from qiime.filter import sample_ids_from_metadata_description
+from qiime.filter import sample_ids_from_metadata_description, get_seqs_to_keep_lookup_from_seq_id_file
 from qiime.util import parse_command_line_parameters, make_option
 
 script_info = {}
@@ -24,11 +24,14 @@ script_info['output_description']= ""
 script_info['required_options'] = [\
  # Example required option
     make_option('-m','--input_fp',type="existing_filepath",help='mapping file'),
-    make_option('-s','--valid_states',type='string',help='string containing '
-        'valid states, e.g. "STUDY_NAME:DOB"', default=None),
 ]
 script_info['optional_options'] = [\
-    make_option('-o','--output_fp',type="new_filepath",help='output file'),\
+    make_option('-o','--output_fp',type="new_filepath",help='output file'),
+    make_option('-s','--valid_states',type='string',help='string containing '
+        'valid states, e.g. "STUDY_NAME:DOB"', default=None),
+    make_option('--sample_id_fp', type="existing_filepath", help='tab-delimited'
+        '  file or newline-delimited file representing the sample ids to keep',
+        default=None)
 ]
 script_info['version'] = __version__
 
@@ -41,7 +44,10 @@ def main():
     out_mapping_fp = opts.output_fp
     valid_states = opts.valid_states
 
-    if mapping_fp and valid_states:
+    if opts.sample_id_fp:
+        valid_sample_ids = \
+         get_seqs_to_keep_lookup_from_seq_id_file(open(opts.sample_id_fp,'U'))
+    elif mapping_fp and valid_states:
         valid_sample_ids = sample_ids_from_metadata_description(
             open(mapping_fp, 'U'), valid_states)
 
