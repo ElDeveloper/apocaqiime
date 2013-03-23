@@ -26,7 +26,8 @@ script_info['required_options'] = [\
     make_option('-m','--input_fp',type="existing_filepath",help='mapping file'),
 ]
 script_info['optional_options'] = [\
-    make_option('-o','--output_fp',type="new_filepath",help='output file'),
+    make_option('-o','--output_fp',type="new_filepath",help='output file',
+        default='new_map.txt'),
     make_option('-s','--valid_states',type='string',help='string containing '
         'valid states, e.g. "STUDY_NAME:DOB"', default=None),
     make_option('--sample_id_fp', type="existing_filepath", help='tab-delimited'
