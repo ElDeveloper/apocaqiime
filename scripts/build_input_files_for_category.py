@@ -11,21 +11,26 @@ __maintainer__ = "Yoshiki Vazquez Baeza"
 __email__ = "yoshiki89@gmail.com"
 __status__ = "Development"
 
+import warnings
+warnings.filterwarnings('ignore', 'Not using MPI as mpi4py not found')
 
 from os.path import join
 from cogent.util.misc import makedirs
 from qiime.parse import parse_mapping_file
+from cogent.util.progress_display import display_wrap
 from qiime.filter import (sample_ids_from_metadata_description,
     filter_mapping_file)
-from qiime.util import parse_command_line_parameters, make_option
-from qiime.util import MetadataMap
+from qiime.util import (parse_command_line_parameters, make_option,
+    qiime_system_call)
 
 script_info = {}
-script_info['brief_description'] = "Use at your own risk"
-script_info['script_description'] = "Use at your own risk"
+script_info['brief_description'] = "Use at your own risk (this is a workflow)"
+script_info['script_description'] = "Use at your own risk (this is a workflow)"
 script_info['script_usage'] = [("","","")]
 script_info['output_description']= ""
 script_info['required_options'] = [
+    make_option('-i','--coords_fp',type="existing_filepath",help='input file'
+    ' of coordinates'),
     make_option('-m','--mapping_fp',type="existing_filepath",help='mapping file'
     'in a QIIME compliant format'),
     make_option('-a','--coloring_header_name',type="string",help='header in the'
@@ -43,6 +48,8 @@ script_info['optional_options'] = [
 ]
 script_info['version'] = __version__
 
+FILTER_CMD = 'filter_coords_from_pcoa.py -i "%s" -m "%s" -s "%s" -o "%s"'
+
 def main():
     option_parser, opts, args = parse_command_line_parameters(**script_info)
 
@@ -50,6 +57,7 @@ def main():
     coloring_header_name = opts.coloring_header_name
     subject_header_name = opts.subject_header_name
     force = opts.force
+    coords_fp = opts.coords_fp
 
     if opts.output_path == None:
         output_path = 'colored_by_%s_separated_by_%s' % (coloring_header_name,
@@ -71,21 +79,26 @@ def main():
 
     coloring_values = list(set([row[coloring_index] for row in data]))
 
-    for c_value in coloring_values:
-        sample_ids = sample_ids_from_metadata_description(open(mapping_fp, 'U'),
-            '%s:%s' % (coloring_header_name, c_value))
+    @display_wrap
+    def silly_function(ui):
+        for c_value in ui.series(coloring_values):
+            sample_ids = sample_ids_from_metadata_description(open(mapping_fp, 'U'),
+                '%s:%s' % (coloring_header_name, c_value))
 
-        _headers, _data = filter_mapping_file(data, headers, sample_ids, True)
-        # print _headers
-        # print 'The length is %d and %d' % (len(_data), len(_data[0]))
-        # print 'This is subject index %d' % subject_index
-        per_color_subject_values = list(set([row[subject_index] for row in _data]))
+            _headers, _data = filter_mapping_file(data, headers, sample_ids, True)
+            per_color_subject_values = list(set([row[subject_index] for row in _data]))
 
-        fd = open(join(output_path, c_value+'.txt'), 'w')
-        for s in per_color_subject_values:
-            fd.write('%s\n' % s)
-        fd.close()
+            fd = open(join(output_path, 'color_by_'+c_value+'.txt'), 'w')
+            for s in ui.series(per_color_subject_values):
+                fd.write('%s\n' % s)
+            fd.close()
 
+            for s in ui.series(per_color_subject_values):
+                COMMAND_CALL = FILTER_CMD % (coords_fp, mapping_fp, '%s:%s' % (subject_header_name, s), join(output_path, s+'.txt'))
+                o, e, r = qiime_system_call(COMMAND_CALL)
+
+
+    silly_function()
 
 if __name__ == "__main__":
     main()
