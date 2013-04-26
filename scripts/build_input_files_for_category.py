@@ -44,11 +44,16 @@ script_info['optional_options'] = [
     'rated_by_SUBJECT_HEADER_NAME]', default=None),
     make_option('-f', '--force', action='store_true', dest='force', help='Force'
     ' overwrite of existing output directory (note: existing files in '
-    'output_dir will not be removed) [default: %default]')
+    'output_dir will not be removed) [default: %default]'),
+    make_option('-z', '--suppress_trajectory_files', action='store_true',
+    dest='suppress_trajectory_files', help='Suppress the creation of the per '
+    'individual trajectory files [default: %default]')
 ]
 script_info['version'] = __version__
 
 FILTER_CMD = 'filter_coords_from_pcoa.py -i "%s" -m "%s" -s "%s" -o "%s"'
+
+CONVERSION_CMD = 'convert_pc_to_mathematica.py -i "%s" -o "%s" -n 3'
 
 def main():
     option_parser, opts, args = parse_command_line_parameters(**script_info)
@@ -58,6 +63,7 @@ def main():
     subject_header_name = opts.subject_header_name
     force = opts.force
     coords_fp = opts.coords_fp
+    suppress_trajectory_files = opts.suppress_trajectory_files
 
     if opts.output_path == None:
         output_path = 'colored_by_%s_separated_by_%s' % (coloring_header_name,
@@ -93,9 +99,15 @@ def main():
                 fd.write('%s\n' % s)
             fd.close()
 
-            for s in ui.series(per_color_subject_values):
-                COMMAND_CALL = FILTER_CMD % (coords_fp, mapping_fp, '%s:%s' % (subject_header_name, s), join(output_path, s+'.txt'))
-                o, e, r = qiime_system_call(COMMAND_CALL)
+            if not suppress_trajectory_files:
+                for s in ui.series(per_color_subject_values):
+                    filename = join(output_path, s+'.txt')
+
+                    COMMAND_CALL = FILTER_CMD % (coords_fp, mapping_fp, '%s:%s' % (subject_header_name, s), filename)
+                    o, e, r = qiime_system_call(COMMAND_CALL)
+
+                    COMMAND_CALL = CONVERSION_CMD % (filename, filename)
+                    o, e, r = qiime_system_call(COMMAND_CALL)
 
 
     silly_function()
