@@ -47,12 +47,14 @@ script_info['optional_options'] = [
     'output_dir will not be removed) [default: %default]'),
     make_option('-z', '--suppress_trajectory_files', action='store_true',
     dest='suppress_trajectory_files', help='Suppress the creation of the per '
-    'individual trajectory files [default: %default]')
+    'individual trajectory files [default: %default]'),
+    make_option('--sorting_category', type="string", help="category to sort the"
+    " data by [default: %default]")
 ]
 script_info['version'] = __version__
 
-FILTER_CMD = 'filter_coords_from_pcoa.py -i "%s" -m "%s" -s "%s" -o "%s"'
-
+FILTER_CMD = 'filter_coords_from_pcoa.py -i "%s" -m "%s" -s "%s" -o "%s" '+\
+    '--mapping_header_name "%s"'
 CONVERSION_CMD = 'convert_pc_to_mathematica.py -i "%s" -o "%s" -n 3'
 
 def main():
@@ -64,6 +66,7 @@ def main():
     force = opts.force
     coords_fp = opts.coords_fp
     suppress_trajectory_files = opts.suppress_trajectory_files
+    sorting_category = opts.sorting_category
 
     if opts.output_path == None:
         output_path = 'colored_by_%s_separated_by_%s' % (coloring_header_name,
@@ -103,11 +106,22 @@ def main():
                 for s in ui.series(per_color_subject_values):
                     filename = join(output_path, s+'.txt')
 
-                    COMMAND_CALL = FILTER_CMD % (coords_fp, mapping_fp, '%s:%s' % (subject_header_name, s), filename)
+                    if opts.verbose:
+                        print 'Working on printing', filename
+
+                    COMMAND_CALL = FILTER_CMD % (coords_fp, mapping_fp,
+                        '%s:%s' % (subject_header_name, s), filename,
+                        sorting_category)
                     o, e, r = qiime_system_call(COMMAND_CALL)
+                    if opts.verbose and e:
+                        print 'Error happened on filtering step: \n%s' % e
+                        continue
 
                     COMMAND_CALL = CONVERSION_CMD % (filename, filename)
                     o, e, r = qiime_system_call(COMMAND_CALL)
+                    if opts.verbose and e:
+                        print 'Error happened on conversion step: \n%s' % e
+                        continue # useless here but just in case
 
 
     silly_function()
