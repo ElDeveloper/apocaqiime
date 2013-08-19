@@ -3,7 +3,7 @@
 from __future__ import division
 
 __author__ = "AUTHOR_NAME"
-__copyright__ = "Copyright 2011, The QIIME project"
+__copyright__ = "Copyright 2013, ApocaQIIME"
 __credits__ = ["AUTHOR_NAME"]
 __license__ = "GPL"
 __version__ = "1.6.0-dev"
