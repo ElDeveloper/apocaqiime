@@ -13,9 +13,9 @@ from subprocess import Popen, PIPE, STDOUT
 from os.path import abspath, dirname, join, basename, splitext, exists
 
 EXIT_STATUS = 0
-CMD = '' # for the command calls it is important to source .bash_profile
+CMD = ''
 
-# function was taken from QIIME but I don't want this module to depend on QIIME
+# obviously this was taken from QIIME but I don't want this module to depend on QIIME
 def qiime_system_call(cmd, shell=True):
     """Call cmd and return (stdout, stderr, return_value).
 
@@ -52,10 +52,10 @@ if len(argv) == 2:
             print 'Running script usage test ...'
             script_call = join(test_path, 'all_tests.py')
             script_name = splitext(module_name)[0]
-            CMD = 'source ~/.bash_profile > /dev/null; python %s '+\
-                '--suppress_unit_tests --script_usage_tests %s' % (
-                script_call, script_name)
-
+            CMD = 'source ~/.bash_profile > /dev/null; python %s --suppress_unit_tests --script_usage_tests %s' % (script_call, script_name)
+        if basename(dirname(full_path)) in ['test', 'tests']:
+            print 'Running test case ...'
+            CMD = 'source ~/.bash_profile > /dev/null; python %s' % full_path
         elif exists(join(test_path, 'test_%s' % module_name)):
             print 'Running unit tests ...'
             test_name = join(test_path, 'test_%s' % module_name)
