@@ -21,6 +21,8 @@ from qiime.parse import parse_coords, parse_mapping_file
 from qiime.util import (parse_command_line_parameters, make_option,
     qiime_system_call)
 from qiime.colors import get_qiime_hex_string_color
+from os.path import splitext
+from qiime.plot_taxa_summary import make_legend
 
 script_info = {}
 script_info['brief_description'] = ""
@@ -79,13 +81,18 @@ def main():
  
 
     # sort the data!!! that way you can match make_3d_plots.py
-    for index, category in enumerate(natsort(category_names)):
+    sorted_categories = natsort(category_names)
+    colors_used = []
+
+    for index, category in enumerate(sorted_categories):
         sample_ids_list = [line[0] for line in mapping_data if line[category_header_index] == category]
 
         qiime_color = get_qiime_hex_string_color(index)
 
         if len(sample_ids_list) < 3:
             continue
+
+        colors_used.append(qiime_color)
 
         indices = [coords_headers.index(sample_id) for sample_id in sample_ids_list]
         points = coords_data[indices, :2]# * coords_percents[:2]
@@ -99,6 +106,12 @@ def main():
     # plt.show()
 
     main_figure.savefig(output_fp)
+
+    name = splitext(output_fp)[0]
+    extension = splitext(output_fp)[1].replace('.', '')
+
+    make_legend(sorted_categories, colors_used, 0, 0, 'black', 'white', name,
+                extension, 80)
 
 if __name__ == "__main__":
     main()
