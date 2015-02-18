@@ -11,8 +11,9 @@ __maintainer__ = "Yoshiki Vazquez Baeza"
 __email__ = "yoshiki89@gmail.com"
 __status__ = "Development"
 
-from qiime.format import format_coords
-from qiime.parse import parse_coords, parse_mapping_file
+from apocaqiime.format import format_coords
+from emperor.parse import parse_coords
+from qiime.parse import parse_mapping_file
 from qiime.filter import sample_ids_from_metadata_description
 from qiime.util import parse_command_line_parameters, make_option
 

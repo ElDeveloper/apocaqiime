@@ -11,7 +11,7 @@ __maintainer__ = "Yoshiki Vazquez Baeza"
 __email__ = "yoshiki89@gmail.com"
 __status__ = "Development"
 
-from qiime.parse import parse_coords
+from emperor.parse import parse_coords
 from qiime.util import parse_command_line_parameters, make_option
 
 script_info = {}
